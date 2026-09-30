@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SnapUPI</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#050a1e;--card:#0d1638;--line:#26357a;--violet:#9b5cff;--cyan:#1ec8ff;--text:#f2f4ff;--dim:#8f9bd0;--ok:#22c55e}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0}
+body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans Devanagari",sans-serif}
+#app{position:relative;max-width:430px;height:100%;margin:0 auto;overflow:hidden}
+.scr{position:absolute;inset:0;display:none;flex-direction:column;padding:18px}
+.scr.on{display:flex}
+.logo{font-weight:800;letter-spacing:-.03em}.logo b{color:var(--cyan)}
+.c{align-items:center;justify-content:center;text-align:center}
+.bolt{font-size:88px;filter:drop-shadow(0 0 18px var(--violet))}
+.big{font-size:54px}
+.tag{color:var(--dim);margin-top:8px}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.ic{background:none;border:0;color:var(--text);font-size:22px;padding:6px 10px}
+.cam{position:relative;flex:1;border-radius:22px;overflow:hidden;background:#0a1030;border:1px solid var(--line)}
+.cam video{width:100%;height:100%;object-fit:cover}
+.frame{position:absolute;inset:22% 14%;border:3px solid var(--cyan);border-radius:22px;box-shadow:0 0 0 999px #0006}
+.hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:14px}
+.btn{border:0;border-radius:14px;padding:15px;font-size:16px;font-weight:700;color:#fff;background:linear-gradient(90deg,#7c3aed,#3b82f6);width:100%;margin-top:12px}
+.btn.alt{background:var(--card);border:1px solid var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+.amt{font-size:40px;font-weight:800}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.app{border:0;border-radius:14px;padding:18px 8px;font-weight:700;font-size:16px;color:#fff}
+.amt input{background:none;border:0;border-bottom:2px solid var(--cyan);color:var(--text);font:inherit;width:62%}
+.note{color:var(--dim);font-size:12px;text-align:center;margin-top:12px}
+.pay{background:#fff;color:#111;margin:-18px;padding:18px;flex:1}
+.pay .hd{margin:-18px -18px 16px;padding:16px;color:#fff;font-weight:700;font-size:18px}
+.pay .f{border:1px solid #ddd;border-radius:12px;padding:12px;margin:6px 0 14px}
+.pay .btn{background:var(--ac)}
+.dots{display:flex;gap:12px;justify-content:center;margin:18px 0}
+.dots i{width:14px;height:14px;border-radius:50%;background:#d4d4d8}.dots i.f{background:#111}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:auto}
+.pad button{background:none;border:0;font-size:26px;padding:16px;color:#111}
+.tick{width:110px;height:110px;border-radius:50%;background:var(--ok);display:grid;place-items:center;font-size:58px;box-shadow:0 0 40px #22c55e66;margin-bottom:18px}
+.row{display:flex;justify-content:space-between;width:100%;padding:8px 0;color:var(--dim);font-size:14px}
+a{color:var(--cyan)}
+:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<section class="scr c on" id="s1" onclick="go(2)">
+  <div class="bolt">⚡</div>
+  <h1 class="logo big">Snap<b>UPI</b></h1>
+  <p class="tag">Scan. Select. Pay.</p>
+  <p class="note" style="margin-top:40px">शुरू करने के लिए टैप करें</p>
+</section>
+
+<section class="scr" id="s2">
+  <div class="bar"><span class="logo">⚡ Snap<b>UPI</b></span><span></span></div>
+  <div class="cam"><video id="v" playsinline muted></video><div class="frame"></div><div class="hint" id="hint">QR को फ्रेम में रखें</div></div>
+  <button class="btn" onclick="$('gal').click()">गैलरी से QR फोटो चुनें</button>
+  <input id="gal" type="file" accept="image/*" hidden onchange="fromFile(this)">
+  <button class="btn alt" onclick="demo()">डेमो QR स्कैन करें</button>
+</section>
+
+<section class="scr" id="s3">
+  <div class="bar"><button class="ic" onclick="go(2)" aria-label="वापस">←</button><span class="logo">Snap<b>UPI</b></span><span style="width:40px"></span></div>
+  <div class="card"><b id="pn">ABC Store</b><div class="tag" id="pa"></div></div>
+  <div class="card"><div class="tag">Amount (₹ खुद डालें)</div><div class="amt">₹ <input id="am" type="number" inputmode="decimal" min="1" placeholder="0" oninput="S.am=this.value" aria-label="Amount"></div></div>
+  <p style="margin:6px 0 10px;font-weight:700">इनसे पेमेंट करें</p>
+  <div class="grid">
+    <button class="app" style="background:#5f259f" onclick="pick('PhonePe','#5f259f')">PhonePe</button>
+    <button class="app" style="background:#1a73e8" onclick="pick('GPay','#1a73e8')">GPay</button>
+    <button class="app" style="background:#00b9f1" onclick="pick('Paytm','#00b9f1')">Paytm</button>
+    <button class="app" style="background:#0a4fa3" onclick="pick('BHIM','#0a4fa3')">BHIM</button>
+  </div>
+  <p class="note">पेमेंट आपके चुने हुए UPI ऐप में पूरा होगा</p>
+</section>
+
+<section class="scr" id="s4" style="padding:18px">
+  <div class="pay" id="p4" style="--ac:#5f259f">
+    <div class="hd" id="h4">PhonePe</div>
+    <b id="pn4"></b><div style="color:#666;font-size:13px" id="pa4"></div>
+    <div style="margin-top:16px;color:#666">Amount</div><div class="amt" id="am4"></div>
+    <div style="margin-top:14px;color:#666">From</div><div class="f">State Bank of India XXXX 1234</div>
+    <button class="btn" onclick="go(5)">Continue</button>
+    <p class="note"><a id="real" href="#">असली UPI ऐप में खोलें (Android)</a></p>
+  </div>
+</section>
+
+<section class="scr" id="s5">
+  <div class="pay" id="p5" style="--ac:#5f259f">
+    <div class="hd" id="h5">PhonePe</div>
+    <p style="text-align:center;font-weight:700">UPI PIN डालें</p>
+    <div class="dots" id="dots"></div>
+    <div class="pad" id="pad"></div>
+  </div>
+</section>
+
+<section class="scr c" id="s6">
+  <div class="tick">✓</div>
+  <h2>Payment Successful</h2><div class="amt" id="am6"></div>
+  <div class="card" style="width:100%;margin-top:22px;text-align:left">
+    <div class="row"><span>To</span><b style="color:var(--text)" id="pn6"></b></div>
+    <div class="row"><span>UPI ID</span><span id="pa6"></span></div>
+    <div class="row"><span>Ref. No.</span><span id="ref"></span></div>
+  </div>
+  <button class="btn alt" onclick="go(2)">Back to Home</button>
+</section>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+var S={pa:'',pn:'',am:'',app:'PhonePe',col:'#5f259f'},pin='',stream=null,loop=0;
+function $(i){return document.getElementById(i)}
+function go(n){
+  document.querySelectorAll('.scr').forEach(function(e){e.classList.remove('on')});
+  $('s'+n).classList.add('on');
+  if(n==2)startCam();else stopCam();
+  if(n==5){pin='';drawDots()}
+  if(n==6){$('ref').textContent=String(Math.floor(Math.random()*9e11)+1e11)}
+}
+function parse(t){
+  if(!/^upi:\/\/pay\?/i.test(t))return false;
+  var q=new URLSearchParams(t.split('?')[1]);
+  S.pa=q.get('pa')||'';S.pn=q.get('pn')||'Merchant';S.am=q.get('am')||'';
+  if(!S.pa)return false;
+  fill();go(3);return true;
+}
+function fill(){
+  $('pn').textContent=S.pn;$('pa').textContent='UPI ID: '+S.pa;$('am').value=S.am;
+}
+function demo(){parse('upi://pay?pa=abcstore@okaxis&pn=ABC%20Store&cu=INR')}
+function pick(app,col){
+  if(!(+S.am>0)){$('am').focus();return}
+  S.app=app;S.col=col;
+  ['p4','p5'].forEach(function(i){$(i).style.setProperty('--ac',col)});
+  $('h4').style.background=col;$('h5').style.background=col;
+  $('h4').textContent=app;$('h5').textContent=app;
+  $('pn4').textContent=S.pn;$('pa4').textContent='UPI ID: '+S.pa;$('am4').textContent='₹ '+S.am;
+  $('real').href='upi://pay?pa='+encodeURIComponent(S.pa)+'&pn='+encodeURIComponent(S.pn)+'&am='+encodeURIComponent(S.am)+'&cu=INR';
+  go(4);
+}
+function drawDots(){
+  $('dots').innerHTML='';
+  for(var i=0;i<6;i++){var d=document.createElement('i');if(i<pin.length)d.className='f';$('dots').appendChild(d)}
+}
+(function(){
+  var p=$('pad');
+  '123456789⌫0✓'.split('').forEach(function(k){
+    var b=document.createElement('button');b.textContent=k;b.type='button';
+    b.onclick=function(){
+      if(k=='⌫')pin=pin.slice(0,-1);
+      else if(k=='✓'){if(pin.length>=4){pin='';$('am6').textContent='₹ '+S.am;$('pn6').textContent=S.pn;$('pa6').textContent=S.pa;go(6)}return}
+      else if(pin.length<6)pin+=k;
+      drawDots();
+    };
+    p.appendChild(b);
+  });
+})();
+function fromFile(inp){
+  var f=inp.files&&inp.files[0];inp.value='';
+  if(!f)return;
+  var img=new Image(),u=URL.createObjectURL(f);
+  img.onload=function(){
+    var k=Math.min(1,1600/Math.max(img.width,img.height)),c=document.createElement('canvas');
+    c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+    var x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);
+    var r=window.jsQR&&jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height);
+    if(!r)$('hint').textContent='फोटो में QR नहीं मिला। साफ़ फोटो चुनें';
+    else if(!parse(r.data))$('hint').textContent='यह UPI QR नहीं है';
+  };
+  img.onerror=function(){$('hint').textContent='फोटो खुल नहीं पाई'};
+  img.src=u;
+}
+function startCam(){
+  if(stream||!navigator.mediaDevices)return;
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(function(s){
+    stream=s;var v=$('v');v.srcObject=s;v.play();
+    var c=document.createElement('canvas'),x=c.getContext('2d');
+    loop=setInterval(function(){
+      if(!v.videoWidth||!window.jsQR)return;
+      c.width=v.videoWidth;c.height=v.videoHeight;x.drawImage(v,0,0);
+      var r=jsQR(x.getImageData(0,0,c.width,c.height).data,c.width,c.height);
+      if(r&&parse(r.data))return;
+      if(r)$('hint').textContent='यह UPI QR नहीं है';
+    },300);
+  }).catch(function(){$('hint').textContent='कैमरा नहीं खुला — डेमो QR इस्तेमाल करें'});
+}
+function stopCam(){
+  clearInterval(loop);
+  if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null}
+}
+</script>
+</body>
+</html>
